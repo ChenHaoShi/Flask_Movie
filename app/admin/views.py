@@ -1,8 +1,9 @@
 from . import admin
 from flask import render_template, url_for, redirect, flash, session, request
-from app.admin.forms import LoginForm
-from app.models import Admin
+from app.admin.forms import LoginForm, TagForm
+from app.models import Admin, Tag
 from functools import wraps
+from app import db
 
 @admin.route("/")
 def index():
@@ -31,13 +32,32 @@ def logout():
 def pwd():
     return render_template('admin/pwd.html')
 
-@admin.route('/tag/add/')
+@admin.route('/tag/add/', methods=["GET", "POST"])
 def tag_add():
-    return render_template('admin/tag_add.html')
+    form = TagForm()
+    if form.validate_on_submit():
+        data = form.data
+        tag = Tag.query.filter_by(name=data["tag"]).count()
+        if tag == 1:
+            flash("标签已经存在!", "err")
+            return redirect(url_for("admin.tag_add"))
+        tag = Tag(
+            name = data["tag"]
+        )
+        db.session.add(tag)
+        db.session.commit()
+        flash("标签添加成功!", "ok")
+        return redirect(url_for("admin.tag_add"))
+    return render_template('admin/tag_add.html', form=form)
 
-@admin.route('/tag/list/')
-def tag_list():
-    return render_template('admin/tag_list.html')
+@admin.route('/tag/list/<int:page>/', methods=["GET"])
+def tag_list(page=None):
+    if page is None:
+        page = 1
+    page_data = Tag.query.order_by(
+        Tag.addtime.desc()
+    ).paginate(page=page, per_page=1)
+    return render_template('admin/tag_list.html', page_data=page_data)
 
 @admin.route('/movie/add/')
 def movie_add():
