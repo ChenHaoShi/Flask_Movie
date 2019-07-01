@@ -18,8 +18,11 @@
         <a href=""><b>微电影管理系统</b></a>
     </div>
     <div class="login-box-body">
-        {% for msg in get_flashed_messages() %}
+        {% for msg in get_flashed_messages(category_filter=["err"]) %}
         <p class="login-box-msg" style="color:red;">{{ msg }}</p>
+        {% endfor %}
+        {% for msg in get_flashed_messages(category_filter=["ok"]) %}
+        <p class="login-box-msg" style="color:green;">{{ msg }}</p>
         {% endfor %}
         <form  method="POST" id="form-data" novalidate>
             <div class="form-group has-feedback">
@@ -44,8 +47,8 @@
                 <div class="col-xs-8">
                 </div>
                 <div class="col-xs-4">
-                    {{ form.submit }}
                     {{ form.csrf_token }}
+                    {{ form.submit }}
                 </div>
             </div>
         </form>
